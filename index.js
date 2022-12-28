@@ -1,4 +1,4 @@
-const Joi = require('joi');
+const Joi = require("joi");
 const Express = require("express");
 const app = Express();
 
@@ -7,7 +7,7 @@ app.use(Express.json());
 const port = process.env.PORT || 3000;
 
 let genres = {
-  "action": [
+  action: [
     {
       id: "1",
       name: "Mission Impossible 1",
@@ -19,14 +19,14 @@ let genres = {
       info: "A crazy guy who jumps and does stunts again",
     },
   ],
-  "horror": [
+  horror: [
     {
       id: "3",
       name: "Scream 1",
       info: "A movie where people scream",
     },
   ],
-  "comedy": [
+  comedy: [
     {
       id: "4",
       name: "Rush Hour 1",
@@ -36,9 +36,39 @@ let genres = {
 };
 
 let length_id = 4;
-let length_gen = 3;
 
+function getByID(identity) {
+  for (let genre in genres) {
+    for (let x in genres[genre]) {
+      if (genres[genre][x].id === identity) {
+        return genres[genre][x];
+      }
+    }
+  }
+  return false;
+}
 
+function getByIdGenre(identity) {
+  for (let genre in genres) {
+    for (let x in genres[genre]) {
+      if (genres[genre][x].id === identity) {
+        return genres[genre];
+      }
+    }
+  }
+  return false;
+}
+
+function getByIdIndex(identity) {
+  for (let genre in genres) {
+    for (let x in genres[genre]) {
+      if (genres[genre][x].id === identity) {
+        return x;
+      }
+    }
+  }
+  return false;
+}
 
 //Get
 
@@ -51,70 +81,123 @@ app.get("/vidly/api/genres", (req, res) => {
   res.send(genres);
 });
 
-//Get by genre
-app.get("/vidly/api/:genres", (req, res) => {
-    const genre = req.params.genres
-    if (!genres[genre]) return res.status(404).send("Genre not found or not available")
-    res.send(genres[genre])
+// Get by ID
+app.get("/vidly/api/id/:id", (req, res) => {
+  const identity = req.params.id;
+  const result = getByID(identity);
+  if (result === false) {
+    res.status(404).send("ID not found");
+  }
+  res.send(result);
 });
 
-//Get by ID 
-// app.get("/vidly/api/:id", (req, res) => {
-//     const identity = req.params.id
-    
-// }
-// )
+//Get by genre
+app.get("/vidly/api/:genres", (req, res) => {
+  const genre = req.params.genres;
+  if (!genres[genre])
+    return res.status(404).send("Genre not found or not available");
+  res.send(genres[genre]);
+});
 
-//POST 
+//POST
 
-app.post("/vidly/api/:genres", (req,res) => {
-    //Getting the genre
-    const genre = req.params.genres
-    if (!genres[genre]) return res.status(404).send("Genre not found or not available")
+app.post("/vidly/api/:genres", (req, res) => {
+  //Getting the genre
+  const genre = req.params.genres;
+  if (!genres[genre])
+    return res.status(404).send("Genre not found or not available");
 
-    //Setting a skeletal 
-    const schema = Joi.object({
-        name: Joi.string()
-            .min(3)
-            .required()
-            ,
-        info: Joi.string().max(100).required()
-    });
+  //Setting a skeletal
+  const schema = Joi.object({
+    name: Joi.string().min(3).required(),
+    info: Joi.string().max(100).required(),
+  });
 
-    //Validating 
-    const { error, value } = schema.validate({ name: req.body.name , info: req.body.info });
-    
-    if({error}.error !== undefined) {
-        res.status(400).send('Name must be more than 3 characters and Info musnt exceed a 100 charecters')
-    } else {
-    
+  //Validating
+  const { error, value } = schema.validate({
+    name: req.body.name,
+    info: req.body.info,
+  });
+
+  if ({ error }.error !== undefined) {
+    res
+      .status(400)
+      .send(
+        "Name must be more than 3 characters and Info musnt exceed a 100 charecters"
+      );
+  } else {
+    length_id = length_id + 1;
     const movie = {
-        id : length_id++,
-        name: req.body.name,
-        info:req.body.info
-    } ;
+      id: String(length_id),
+      name: req.body.name,
+      info: req.body.info,
+    };
 
     //Posting
-    res.send(movie)
-    genres[genre].push(movie)
+    res.send(movie);
+    genres[genre].push(movie);
+  }
+});
 
-}})
+// //PUT by ID
+app.put("/vidly/api/:id", (req, res) => {
+  //Check if params is there
+  const identity = req.params.id;
+  const result = getByID(identity);
+  if (result === false) {
+    return res.status(404).send("ID not found");
+  }
 
-// //PUT
-// app.put("/vidly/api/:id", (req,res) => {
-//     //Check if params is there 
-//     const identity = req.params.id;
+  const genre = getByIdGenre(identity);
+  const index = getByIdIndex(identity);
 
-// })
+  //Updating
+  //Setting a skeletal
+  const schema = Joi.object({
+    name: Joi.string().min(3).required(),
+    info: Joi.string().max(100).required(),
+  });
 
-// app.listen(port,console.log(`Listening to port ${port}`))
+  //Validating
+  const { error, value } = schema.validate({
+    name: req.body.name,
+    info: req.body.info,
+  });
 
+  if ({ error }.error !== undefined) {
+    return res
+      .status(400)
+      .send(
+        "Name must be more than 3 characters and Info musnt exceed a 100 charecters"
+      );
+  } else {
+    const movie = {
+      name: req.body.name,
+      info: req.body.info,
+    };
 
-// function findID(num) {
-//     for (let i = 0; i < length_gen; index++) {
-//         for (let i = 0; i < ; i++) {
-//             const element = array[i];
-            
-//         }
-//     }
-// }
+    //Posting
+    res.send(movie);
+    console.log(genre[index]);
+    genre[index].name = req.body.name;
+    genre[index].info = req.body.info;
+  }
+});
+
+//Delete by Id
+
+app.delete("/vidly/api/:id", (req, res) => {
+  //Check if params is there
+  const identity = req.params.id;
+  const result = getByID(identity);
+  if (result === false) {
+    return res.status(404).send("ID not found");
+  }
+  const genre = getByIdGenre(identity);
+  const index = getByIdIndex(identity);
+
+  genre.splice(index,1)
+  res.send(genres)
+});
+
+app.listen(port, console.log(`Listening to port ${port}`));
