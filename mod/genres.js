@@ -14,16 +14,18 @@ const genreScheama = new mongoose.Schema({
 
 const Genre = mongoose.model('Genre', genreScheama)
 
-const genreSchema = Joi.object({
+const genreScheameJoi = Joi.object({
     name: Joi
     .string()
     .min(5)
     .max(50)
 })
 
-
+function validate(req) {
+  return genreScheameJoi.validate(req)
+}
 
   module.exports.Genre = Genre
-  module.exports.genreSchema = genreSchema
+  module.exports.validate = validate
   module.exports.genreScheama = genreScheama
 

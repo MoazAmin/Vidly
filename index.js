@@ -1,21 +1,22 @@
 //Requires
-const Joi = require("joi");
 const Express = require("express");
 const mongoose = require('mongoose')
-const home = require('./routes/home')
-const genres = require('./routes/genre')
-const customers = require('./routes/customers')
-const movies = require('./routes/movies')
 
 
 mongoose.set('strictQuery', true);
-const app = Express();
 
-//uses
+//Middlewear
+const app = Express();
 app.use(Express.json());
+
+//Routes 
+const genres = require('./routes/genre')
 app.use('/vidly/api/genres',genres)
+const home = require('./routes/home')
 app.use('/', home)
+const customers = require('./routes/customers')
 app.use('/vidly/api/customers', customers)
+const movies = require('./routes/movies')
 app.use('/vidly/api/movies', movies)
 
 

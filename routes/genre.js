@@ -1,4 +1,5 @@
-const {Genre, genreSchema } = require('../mod/genres')
+const _ = require('lodash')
+const {Genre, validate } = require('../mod/genres')
 const express = require('express');
 const router = express.Router();
 
@@ -9,48 +10,38 @@ router.get('/', async (req, res) => {
 });
 
 router.post('/', async (req, res) => {
-  const { error, value } = genreSchema.validate({name: req.body.name})
-  if(error) {
-    return res.status(400).send(error.message)
-}
-else {
-  let genre_new = new Genre({
-    name: req.body.name
-  })
-  await genre_new.save()
-  res.send(genre_new)
-}
+  const {error , value} = validate(req.body)
+  if (error) return res.status(400).send(error.message)
+
+  const genre = new Genre(_.pick(value,'name'))
+  await genre.save()
+  res.send(genre)
 })
   
 
-router.put('/:id', async (req, res) => {
-  const genre = Genre.findById({_id: req.params.id})
-  const new_genre = req.body.name;
-  const { error, value }  = genreSchema.
-  validate({name : req.body.name}) ;
-  if(error) {
-      return res.status(400).send(error.message)
-  }
-  else {
-    await Genre.findByIdAndUpdate({_id : req.params.id}, { name: new_genre})
-  }
+router.put('/:name', async (req, res) => {
+
+
+  const genre = await Genre.findOne({name: req.params.name})
+  if(!genre) return res.status(404).send("Genre not found")
+
+  
+  const {error , value} = validate(req.body)
+  if (error) return res.status(400).send(error.message)
+
+  genre.name = req.body.name
+  await genre.save()
+  return res.send(genre)
 })
 
-router.delete('/:id', async (req, res) => {
-  const genre = await Genre.findByIdAndRemove(req.params.id);
+router.delete('/:name', async (req, res) => {
+  const genre = await Genre.findOneAndDelete(req.params.name);
 
   if (!genre) return res.status(404).send('The genre with the given ID was not found.');
 
-  res.send(genre);
+  res.send(`Deleted ${genre.name} genre`);
 });
 
-router.get('/:id', async (req, res) => {
-  const genre = await Genre.findById(req.params.id);
-
-  if (!genre) return res.status(404).send('The genre with the given ID was not found.');
-
-  res.send(genre);
-});
 
 
 module.exports = router;
